@@ -1,0 +1,184 @@
+# SPA Contract Framework Manifest
+# This file defines the framework metadata, variables, and phases
+
+meta:
+  id: spa-contract-dev
+  name: SPA Contract Framework
+  version: 1.0.0
+  description: SPA開発フレームワーク。コンポーネント設計→状態管理→実装の流れ
+
+# Variable mapping (project-config.yml paths)
+variables:
+  PROJECT_NAME: project.name
+  PROJECT_TYPE: project.type
+  DESIGN_ROLE: roles.design
+  IMPL_ROLE: roles.impl
+  SETUP_ROLE: roles.setup
+  SPEC_DIR: directories.spa_spec
+  SPA_SPEC_DIR: directories.spa_spec
+  COMPONENT_SPEC_DIR: directories.spa_spec
+  IMPL_DIR: directories.impl
+  TEST_DIR: directories.test
+
+# Phase definitions
+phases:
+  # Setup
+  - id: 00c-project-config
+    name: プロジェクト設定
+    description: project-config.yml のカスタマイズ
+    tool: Claude
+    group: setup
+    prompt: prompts/00c-project-config.md
+    next: [01-component-design]
+    reject: []
+
+  # Design - Component
+  - id: 01-component-design
+    name: コンポーネント設計
+    description: UIコンポーネント階層・Props設計
+    tool: Claude
+    group: design
+    prompt: prompts/01-component-design.md
+    next: [01r-component-review]
+    reject: []
+
+  - id: 01r-component-review
+    name: コンポーネント設計レビュー
+    description: コンポーネント設計の人間レビュー
+    tool: 人間+AI
+    group: review
+    prompt: prompts/01r-component-review.md
+    next: [02-state-design]
+    reject: [01-component-design]
+
+  # Design - State Management
+  - id: 02-state-design
+    name: 状態管理設計
+    description: Store/Context/状態フロー設計
+    tool: Claude
+    group: design
+    prompt: prompts/02-state-design.md
+    next: [02r-state-review]
+    reject: [01-component-design]
+
+  - id: 02r-state-review
+    name: 状態管理レビュー
+    description: 状態管理設計の人間レビュー
+    tool: 人間+AI
+    group: review
+    prompt: prompts/02r-state-review.md
+    next: [03-routing-design]
+    reject: [02-state-design, 03-state-fix]
+
+  - id: 03-state-fix
+    name: 状態管理修正
+    description: 状態管理設計の修正
+    tool: Claude
+    group: design
+    optional: true
+    prompt: prompts/03-state-fix.md
+    next: [02r-state-review]
+    reject: []
+
+  # Design - Routing
+  - id: 03-routing-design
+    name: ルーティング設計
+    description: ページ遷移・ルート定義設計
+    tool: Claude
+    group: design
+    prompt: prompts/03-routing-design.md
+    next: [04-detail-design]
+    reject: [02-state-design]
+
+  # Design - Detail
+  - id: 04-detail-design
+    name: 詳細設計
+    description: コンポーネント詳細・データフロー設計
+    tool: Claude
+    group: detail
+    prompt: prompts/04-detail-design.md
+    next: [04r-detail-review]
+    reject: [01-component-design]
+
+  - id: 04r-detail-review
+    name: 詳細設計レビュー
+    description: 詳細設計の人間レビュー
+    tool: 人間+AI
+    group: review
+    prompt: prompts/04r-detail-review.md
+    next: [05-handoff-check]
+    reject: [04-detail-design]
+
+  # Handoff
+  - id: 05-handoff-check
+    name: 引継ぎ判定
+    description: 実装への引継ぎ判定
+    tool: Claude
+    group: handoff
+    prompt: prompts/05-handoff-check.md
+    next: [06-design-freeze]
+    reject: [04-detail-design]
+
+  - id: 06-design-freeze
+    name: 契約凍結
+    description: SPA設計の凍結
+    tool: Claude
+    group: freeze
+    prompt: prompts/06-design-freeze.md
+    next: [07-impl-start]
+    reject: [05-handoff-check]
+
+  # Implementation
+  - id: 07-impl-start
+    name: 実装開始
+    description: 実装の開始準備
+    tool: Codex
+    group: impl
+    prompt: prompts/07-impl-start.md
+    next: [08-impl-execute]
+    reject: []
+
+  - id: 08-impl-execute
+    name: 実装
+    description: コンポーネント・状態管理の実装
+    tool: Codex
+    group: impl
+    prompt: prompts/08-impl-execute.md
+    next: [09-test-execute]
+    reject: []
+
+  - id: 09-test-execute
+    name: テスト実装
+    description: コンポーネントテスト・E2Eテスト実装
+    tool: Codex
+    group: impl
+    prompt: prompts/09-test-execute.md
+    next: [10-impl-verify]
+    reject: [08-impl-execute]
+
+  - id: 10-impl-verify
+    name: 実装検証
+    description: 実装の検証
+    tool: Codex
+    group: verify
+    prompt: prompts/10-impl-verify.md
+    next: [10r-impl-verify-review]
+    reject: [08-impl-execute]
+
+  - id: 10r-impl-verify-review
+    name: 実装検証レビュー
+    description: 実装検証結果の人間レビュー
+    tool: 人間+AI
+    group: review
+    prompt: prompts/10r-impl-verify-review.md
+    next: [11-impl-complete]
+    reject: [08-impl-execute]
+
+  - id: 11-impl-complete
+    name: 実装完了
+    description: 実装の完了
+    tool: Codex
+    group: complete
+    prompt: prompts/11-impl-complete.md
+    next: []
+    reject: [10-impl-verify]
